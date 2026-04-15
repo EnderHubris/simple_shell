@@ -1,0 +1,6 @@
+# this is a test file
+whoami
+id
+trip = 10
+smsh_env
+echo $trip

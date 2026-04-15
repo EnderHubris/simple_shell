@@ -61,10 +61,12 @@ strings* splitLine(char* line, size_t len) {
     line[len+1] = '\0';
 
     int isQuoted = 0;
+    char quoteChar = 0;
+
     for (size_t i = 0; i < len; ++i) {
         char c = line[i];
 
-        if (c == ' ') {
+        if (!isQuoted && c == ' ') {
             if (subString != NULL) {
                 appendString(obj, subString);
                 subString = NULL;
@@ -73,6 +75,10 @@ strings* splitLine(char* line, size_t len) {
         } else if (subString == NULL) {
             // quoted-strings start with a quote char
             isQuoted = (c == '"' || c == '\'');
+            quoteChar = c;
+        } else if (isQuoted && line[i-1] != '\\') {
+            // quote group closed
+            if (quoteChar == c) isQuoted = 0;
         } else if (!isQuoted && c == ';') {
             // split the string at the semi-colon and
             // append both strings

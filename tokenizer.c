@@ -1,5 +1,6 @@
 #include "tokenizer.h"
 #include "environ.h"
+#include "parser.h"
 #include "utils.h"
 
 /*
@@ -66,7 +67,7 @@ void tokenize(char** argv, size_t argc) {
             continue;
         } else if (strcmp("read", token) == 0) {
             char* varName = get_value(argv, argc, i);
-            if (varName) {
+            if (validName(varName) && varName) {
                 ++i;
                 smshRead(&SMSH_ENV, varName);
             } else {
@@ -92,21 +93,9 @@ void tokenize(char** argv, size_t argc) {
                     break;
                 }
 
-                // test if we need to resolve variables
-                if (echo_token[0] != '\'') {
-                    if (echo_token[0] == '\"') {
-                        // remove the quotes the resolve
-                        // given variable if possible
-                    } else if (echo_token[0] == '$') {
-                        // resolve if possible
-                        char* name = substr(echo_token, 1, strlen(echo_token));
-                        char* val = getVariable(&SMSH_ENV, name);
-                        if (val) printf("%s ", val);
-                        free(name);
-                    }
-                } else {
-                    printf("%s ", echo_token);
-                }
+                char* result = evalExpr(&SMSH_ENV, echo_token);
+                printf("%s ", result ? result : echo_token);
+                free(result);
             }
             printf("\n");
             i+=k;
@@ -130,7 +119,9 @@ void tokenize(char** argv, size_t argc) {
             char* varValue = get_value(argv, argc, i+1);
             if (varValue) {
                 i += 2;
-                addVariable(&SMSH_ENV, token, varValue);
+                char* result = evalExpr(&SMSH_ENV, varValue);
+                addVariable(&SMSH_ENV, token, result ? result : varValue);
+                free(result);
                 continue;
             }
         }

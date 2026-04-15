@@ -6,7 +6,7 @@
 #define INFO "[\033[33m*\033[0m]"
 #define OK "[\033[32m+\033[0m]"
 
-#define TEST_COUNT 7
+#define TEST_COUNT 9
 static void showProgress() {
     static int n = 1;
     
@@ -20,7 +20,7 @@ static void showProgress() {
 }
 
 int main() {
-    printf("%s Testing Splitter\n", INFO);
+    printf("%s Testing Splitter\n\n", INFO);
 
     {
         char s[] = "hi";
@@ -111,6 +111,30 @@ int main() {
         assert(arglist->count == 2);
         assert( strcmp("\"trust;\"", arglist->strs[0]) == 0 );
         assert( strcmp("me", arglist->strs[1]) == 0 );
+
+        freeList(arglist);
+        showProgress();
+    }
+
+    {
+        char s[] = "'help us'";
+        strings* arglist = splitLine(s, strlen(s));
+        assert(arglist != NULL);
+
+        assert(arglist->count == 1);
+        assert( strcmp("'help us'", arglist->strs[0]) == 0 );
+
+        freeList(arglist);
+        showProgress();
+    }
+
+    {
+        char s[] = "\"help us\"";
+        strings* arglist = splitLine(s, strlen(s));
+        assert(arglist != NULL);
+
+        assert(arglist->count == 1);
+        assert( strcmp("\"help us\"", arglist->strs[0]) == 0 );
 
         freeList(arglist);
         showProgress();

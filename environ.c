@@ -1,6 +1,30 @@
 #include "environ.h"
 
+static int updateVariable(smsh_env* env, const char* name, const char* val) {
+    smsh_env_var* v = NULL;
+    if ( (v = getVariable(env, name)) ) {
+        // update type
+        char *endp; strtol(val, &endp, 10);
+        int isLiteral = (endp == val) || (*endp != '\0');
+
+        free(v->value); // free original value
+        v->value = strdup(val);
+
+        v->v_type = ( isLiteral ) ? (
+            LIT_STRING
+        ) : (
+            NUMERIC
+        );
+
+        return 1;
+    }
+    return 0;
+}
+
 void addVariable(smsh_env* env, const char* name, const char* val) {
+    // check if the name already exists and update it if so
+    if (updateVariable(env, name, val)) return;
+
     smsh_env_var** tmp = env->smsh_env_var;
     env->smsh_env_var = malloc(
         (env->var_c + 1) * sizeof(smsh_env_var*)
@@ -68,11 +92,11 @@ void printEnviron(smsh_env* env) {
         if (v) printf("%s=%s\n", v->name, v->value);
     }
 }
-char* getVariable(smsh_env* env, const char* name) {
+smsh_env_var* getVariable(smsh_env* env, const char* name) {
     for (size_t i = 0; i < env->var_c; ++i) {
         smsh_env_var* v = env->smsh_env_var[i];
         if ( strcmp(v->name, name) == 0 )
-            return v->value;
+            return v;
     }
     return NULL;
 }

@@ -20,9 +20,10 @@ build: splitter_o tokenizer_o smsh_environ_o utils_o
 	-o smsh
 
 test: build
+	mkdir -p tests/
 	gcc $(CC_FLAGS) test_splitter.c \
 	splitter.o \
-	-o test_splitter && ./test_splitter
+	-o tests/test_splitter && tests/test_splitter
 
 clean_o:
 	rm -f *.o

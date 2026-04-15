@@ -1,6 +1,5 @@
 #include "tokenizer.h"
-
-static void exitShell(int exitCode) { exit(exitCode); };
+#include "environ.h"
 
 /*
     shell-tokens | "exit", "cd", "read"
@@ -10,9 +9,28 @@ static void exitShell(int exitCode) { exit(exitCode); };
 
 const char* TOKENS[] = {
     "if", "elif", "else", "then", ";", "\n",
-    "exit", "cd", "read"
+    "exit", "cd", "read", "smsh_env"
 };
 const size_t TOKEN_COUNT = sizeof(TOKENS) / sizeof(TOKENS[0]);
+
+smsh_env SMSH_ENV = { 0 };
+
+/**
+ * Get the value of the argument after index i
+ */
+static char* get_value(char** argv, size_t argc, size_t i) {
+    char* val = (i+1 < argc) ? argv[i+1] : NULL;
+
+    // check that varName is not a token
+    for (size_t i = 0; val && i < TOKEN_COUNT; ++i) {
+        // if varName is a token run cd with no arg
+        if (strcmp(val, TOKENS[i]) == 0) {
+            val = NULL;
+            break;
+        }
+    }
+    return val;
+}
 
 void tokenize(char** argv, size_t argc) {
     for (size_t i = 0; i < argc; ++i) {
@@ -30,20 +48,10 @@ void tokenize(char** argv, size_t argc) {
             }
 
             // quit smsh program
-            exitShell(exitCode);
+            exit(exitCode);
         } else if (strcmp("cd", token) == 0) {
             if (strcmp(argv[i], "cd") == 0) {
-                char* newDir = (i+1 < argc) ? argv[i+1] : NULL;
-
-                // validate the chdir argument
-                for (size_t k = 0; newDir && k < TOKEN_COUNT; ++k) {
-                    // if newDir is a token run cd with no arg
-                    if (strcmp(newDir, TOKENS[k]) == 0) {
-                        newDir = NULL;
-                        break;
-                    }
-                }
-
+                char* newDir = get_value(argv, argc, i);
                 // exec chdir
                 if (newDir == NULL) {
                     // move to user home directory
@@ -56,6 +64,17 @@ void tokenize(char** argv, size_t argc) {
             }
             continue;
         } else if (strcmp("read", token) == 0) {
+            char* varName = get_value(argv, argc, i);
+            if (varName) {
+                ++i;
+                smshRead(&SMSH_ENV, varName);
+            } else {
+                printf("Missing read target\n");
+            }
+
+            continue;
+        } else if (strcmp("smsh_env", token) == 0) {
+            printEnviron(&SMSH_ENV);
             continue;
         }
 
@@ -67,6 +86,16 @@ void tokenize(char** argv, size_t argc) {
             continue;
         } else if (strcmp("then", token) == 0) {
             continue;
+        }
+
+        // check for assignment syntax
+        if ( (i+2 < argc) && (strcmp(argv[i+1], "=") == 0) ) {
+            char* varValue = get_value(argv, argc, i+1);
+            if (varValue) {
+                i += 2;
+                addVariable(&SMSH_ENV, token, varValue);
+                continue;
+            }
         }
 
         printf("%s is unrecognized\n", token);

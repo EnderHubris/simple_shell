@@ -29,3 +29,4 @@ clean_o:
 	rm -f *.o
 clean: clean_o
 	rm -f smsh
+	rm -f tests/*

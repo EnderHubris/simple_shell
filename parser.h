@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
 #include <string.h>
 
 #include "environ.h"
@@ -16,5 +18,10 @@
  * @returns NULL if no transformation occurs
  */
 char* evalExpr(smsh_env* env, const char* value);
+
+/**
+ * Pass a statement into execvp
+ */
+void exec_smsh(char** argv);
 
 #endif

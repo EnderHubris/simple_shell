@@ -126,6 +126,34 @@ void tokenize(char** argv, size_t argc) {
             }
         }
 
-        printf("%s is unrecognized\n", token);
+        // assume these are normal bash commands and take advantage
+        // of outter bash shell | find the end of cmdlet
+        size_t k = i+1;
+        for (; k < argc; ++k) {
+            if (
+                strcmp(argv[k], ";") == 0 ||
+                strcmp(argv[k], "\n") == 0
+            ) break;
+        }
+
+        // need to insert a null pointer so execvp
+        // knowns where to end
+        char** oargv = malloc( (k+1) * sizeof(char*) );
+        oargv[k] = NULL;
+
+        for (size_t j = 0; j < k; ++j) {
+            char* av = argv[i+j];
+            oargv[j] = strdup(av);
+        }
+        exec_smsh(oargv);
+
+        // free new array we send to execvp
+        for (size_t j = 0; j < k; ++j)
+            free(oargv[j]);
+        free(oargv);
+
+        i+=k;
+
+        // printf("%s is unrecognized\n", token);
     }
 }

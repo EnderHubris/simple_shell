@@ -1,5 +1,29 @@
 #include "parser.h"
 
+void exec_smsh(char** argv) {
+    // create a child fork and run system commands
+    // via execvp
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        perror("fork");
+    } else if (pid == 0) {
+        // flushes stdout so we can
+        // see the child output
+        fflush(stdout);
+
+        // child process
+        if (execvp(argv[0], argv) == -1) {
+            perror("execvp");
+            _exit(1);
+        }
+    } else {
+        // parent proc needs to wait for child to finish
+        int status;
+        waitpid(pid, &status, 0);
+    }
+}
+
 char* evalExpr(smsh_env* env, const char* value) {
     // test if we need to resolve variables
     if (value[0] != '\'') {

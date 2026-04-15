@@ -41,33 +41,6 @@ ssize_t getCmd(char** input) {
     return getline(&(*input), &len, stdin);
 }
 
-/**
- * Pass a statement into execvp
- */
-static void exec_smsh(char** argv) {
-    // create a child fork and run system commands
-    // via execvp
-    pid_t pid = fork();
-
-    if (pid == -1) {
-        perror("fork");
-    } else if (pid == 0) {
-        // flushes stdout so we can
-        // see the child output
-        fflush(stdout);
-
-        // child process
-        if (execvp(argv[0], argv) == -1) {
-            perror("execvp");
-            _exit(1);
-        }
-    } else {
-        // parent proc needs to wait for child to finish
-        int status;
-        waitpid(pid, &status, 0);
-    }
-}
-
 void shellEval(char** argv, size_t argc) {
     /*
     for (size_t i = 0; i < argc; ++i) {

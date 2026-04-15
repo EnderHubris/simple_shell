@@ -60,15 +60,34 @@ strings* splitLine(char* line, size_t len) {
     // replace new-line with \0
     line[len+1] = '\0';
 
+    int isQuoted = 0;
     for (size_t i = 0; i < len; ++i) {
-        if (line[i] == ' ') {
+        char c = line[i];
+
+        if (c == ' ') {
             if (subString != NULL) {
                 appendString(obj, subString);
                 subString = NULL;
             }
             continue;
+        } else if (subString == NULL) {
+            // quoted-strings start with a quote char
+            isQuoted = (c == '"' || c == '\'');
+        } else if (!isQuoted && c == ';') {
+            // split the string at the semi-colon and
+            // append both strings
+            if (subString != NULL) {
+                appendString(obj, subString);
+                subString = NULL; // clear the string after appending
+
+                appendChar(&subString, c);
+                appendString(obj, subString);
+                subString = NULL;
+            }
+            continue;
         }
-        appendChar(&subString, line[i]);
+
+        appendChar(&subString, c);
     }
     appendString(obj, subString);
 

@@ -8,6 +8,7 @@
 #include <pwd.h>
 #include <limits.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #include "splitter.h"
 

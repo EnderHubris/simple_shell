@@ -1,5 +1,6 @@
 #include "tokenizer.h"
 #include "environ.h"
+#include "utils.h"
 
 /*
     shell-tokens | "exit", "cd", "read"
@@ -9,7 +10,7 @@
 
 const char* TOKENS[] = {
     "if", "elif", "else", "then", ";", "\n",
-    "exit", "cd", "read", "smsh_env"
+    "exit", "cd", "read", "smsh_env", "echo"
 };
 const size_t TOKEN_COUNT = sizeof(TOKENS) / sizeof(TOKENS[0]);
 
@@ -76,6 +77,40 @@ void tokenize(char** argv, size_t argc) {
         } else if (strcmp("smsh_env", token) == 0) {
             printEnviron(&SMSH_ENV);
             continue;
+        } else if (strcmp("echo", token) == 0) {
+            // print all next tokens and stop at the token
+            // with a semi-colon
+            size_t k = i+1;
+            for (; k < argc; ++k) {
+                char* echo_token = argv[k];
+
+                if (
+                    (strcmp(";", echo_token) == 0) ||
+                    (strcmp("\n", echo_token) == 0)
+                ) {
+                    i+=k+1;
+                    break;
+                }
+
+                // test if we need to resolve variables
+                if (echo_token[0] != '\'') {
+                    if (echo_token[0] == '\"') {
+                        // remove the quotes the resolve
+                        // given variable if possible
+                    } else if (echo_token[0] == '$') {
+                        // resolve if possible
+                        char* name = substr(echo_token, 1, strlen(echo_token));
+                        char* val = getVariable(&SMSH_ENV, name);
+                        if (val) printf("%s ", val);
+                        free(name);
+                    }
+                } else {
+                    printf("%s ", echo_token);
+                }
+            }
+            printf("\n");
+            i+=k;
+            continue;
         }
 
         if (strcmp("if", token) == 0) {
@@ -85,6 +120,8 @@ void tokenize(char** argv, size_t argc) {
         } else if (strcmp("else", token) == 0) {
             continue;
         } else if (strcmp("then", token) == 0) {
+            continue;
+        } else if (strcmp(";", token) == 0 || strcmp("\n", token) == 0) {
             continue;
         }
 

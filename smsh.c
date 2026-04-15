@@ -69,18 +69,29 @@ static void exec_smsh(char** argv) {
 }
 
 void shellEval(char** argv, size_t argc) {
+    /*
     for (size_t i = 0; i < argc; ++i) {
         printf("%s ", argv[i]);
     }
     if (argc > 0) printf("\n");
+    */
 
     // interpret tokens
     tokenize(argv, argc);
 }
 
+static void smsh_cancel() {
+    // reprompt shell
+    printf("\n");
+    showPrompt();
+}
+
 int main() {
     char* prompt = NULL;
     ssize_t len;
+
+    // hijack ctrl+c
+    signal(SIGINT, smsh_cancel);
     
     showPrompt();
 

@@ -68,6 +68,14 @@ void printEnviron(smsh_env* env) {
         if (v) printf("%s=%s\n", v->name, v->value);
     }
 }
+char* getVariable(smsh_env* env, const char* name) {
+    for (size_t i = 0; i < env->var_c; ++i) {
+        smsh_env_var* v = env->smsh_env_var[i];
+        if ( strcmp(v->name, name) == 0 )
+            return v->value;
+    }
+    return NULL;
+}
 
 void freeEnviron(smsh_env* env) {
     if (env == NULL) return;

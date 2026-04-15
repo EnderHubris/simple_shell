@@ -30,6 +30,7 @@ typedef struct {
 void smshRead(smsh_env* env, const char* name);
 
 void addVariable(smsh_env* env, const char* name, const char* val);
+char* getVariable(smsh_env* env, const char* name);
 
 void printEnviron(smsh_env* env);
 

@@ -4,13 +4,13 @@
 #include "utils.h"
 
 /*
-    shell-tokens | "exit", "cd", "read"
+    shell-tokens | "exit", "cd", "read", ...
     -------------+-----------------------------
-    control-flow | "if", "elif", "else", "then"
+    control-flow | "if", "elif", "else", "then", ...
 */
 
 const char* TOKENS[] = {
-    "if", "elif", "else", "then", ";", "\n",
+    "if", "fi", "elif", "else", "then", ";", "\n",
     "exit", "cd", "read", "smsh_env", "echo"
 };
 const size_t TOKEN_COUNT = sizeof(TOKENS) / sizeof(TOKENS[0]);
@@ -103,14 +103,15 @@ void tokenize(char** argv, size_t argc) {
         }
 
         if (strcmp("if", token) == 0) {
-            continue;
-        } else if (strcmp("elif", token) == 0) {
-            continue;
-        } else if (strcmp("else", token) == 0) {
+            
             continue;
         } else if (strcmp("then", token) == 0) {
             continue;
-        } else if (strcmp(";", token) == 0 || strcmp("\n", token) == 0) {
+        } else if (
+            strcmp(";", token) == 0 ||
+            strcmp("\n", token) == 0 ||
+            strcmp("fi", token) == 0
+        ) {
             continue;
         }
 
@@ -126,33 +127,17 @@ void tokenize(char** argv, size_t argc) {
             }
         }
 
-        // assume these are normal bash commands and take advantage
-        // of outter bash shell | find the end of cmdlet
-        size_t k = i+1;
-        for (; k < argc; ++k) {
-            if (
-                strcmp(argv[k], ";") == 0 ||
-                strcmp(argv[k], "\n") == 0
-            ) break;
-        }
+        size_t cmdlet_len;
+        char** cmdlet = extractCommand(&argc, argv, &cmdlet_len, i);
+        exec_smsh(cmdlet);
 
-        // need to insert a null pointer so execvp
-        // knowns where to end
-        char** oargv = malloc( (k+1) * sizeof(char*) );
-        oargv[k] = NULL;
+        // free cmdlet array
+        for (size_t k = 0; k < cmdlet_len; ++k)
+            free(cmdlet[k]);
+        free(cmdlet);
 
-        for (size_t j = 0; j < k; ++j) {
-            char* av = argv[i+j];
-            oargv[j] = strdup(av);
-        }
-        exec_smsh(oargv);
-
-        // free new array we send to execvp
-        for (size_t j = 0; j < k; ++j)
-            free(oargv[j]);
-        free(oargv);
-
-        i+=k;
+        // skip consumed tokens
+        i+=cmdlet_len;
 
         // printf("%s is unrecognized\n", token);
     }

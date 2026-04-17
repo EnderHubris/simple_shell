@@ -22,6 +22,12 @@ char* evalExpr(smsh_env* env, const char* value);
 /**
  * Pass a statement into execvp
  */
-void exec_smsh(char** argv);
+int exec_smsh(char** argv);
+
+/**
+ * Perform a look-ahead and create an array of strings to pass
+ * to exec_smsh
+ */
+char** extractCommand(size_t* argc, char** argv, size_t* len, int i);
 
 #endif

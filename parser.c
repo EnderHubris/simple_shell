@@ -1,12 +1,13 @@
 #include "parser.h"
 
-void exec_smsh(char** argv) {
+int exec_smsh(char** argv) {
     // create a child fork and run system commands
     // via execvp
     pid_t pid = fork();
 
     if (pid == -1) {
         perror("fork");
+        return -1;
     } else if (pid == 0) {
         // flushes stdout so we can
         // see the child output
@@ -17,11 +18,39 @@ void exec_smsh(char** argv) {
             perror("execvp");
             _exit(1);
         }
+        return 0;
     } else {
         // parent proc needs to wait for child to finish
         int status;
         waitpid(pid, &status, 0);
+        return status;
     }
+}
+
+char** extractCommand(size_t* argc, char** argv, size_t* len, int i) {
+    if (!argv || !len || !argc) return NULL;
+
+    // assume these are normal bash commands and take advantage
+    // of outter bash shell | find the end of cmdlet
+    size_t k = i+1;
+    for (; k < *argc; ++k) {
+        if (
+            strcmp(argv[k], ";") == 0 ||
+            strcmp(argv[k], "\n") == 0
+        ) break;
+    }
+
+    // need to insert a null pointer so execvp
+    // knowns where to end
+    char** oargv = malloc( (k+1) * sizeof(char*) );
+    oargv[k] = NULL;
+    *len = k;
+
+    for (size_t j = 0; j < k; ++j) {
+        char* av = argv[i+j];
+        oargv[j] = strdup(av);
+    }
+    return oargv;
 }
 
 char* evalExpr(smsh_env* env, const char* value) {

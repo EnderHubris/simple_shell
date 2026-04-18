@@ -8,15 +8,24 @@ echo $trip
 # failing condition
 if lazyfly
 then
-echo "you should not see me"
+    echo "you should not see me"
+    if grep "127.0.1.1" /etc/passwd
+    then
+        echo "should not see me either"
+    fi
 fi
 
 echo "I'm still executing!"
+echo
 
 # passing condition
 if grep $trip /etc/passwd
 then
-echo "yahoo"
+    echo "yahoo"
+    if grep "PostgreSQL administrator" /etc/passwd
+    then
+        echo "System runs psql"
+    fi
 fi
 
 echo "i am famished"

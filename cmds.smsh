@@ -1,6 +1,22 @@
 # this is a test file
 whoami
 id
-trip = 10
+trip = 1
 smsh_env
 echo $trip
+
+# failing condition
+if lazyfly
+then
+echo "you should not see me"
+fi
+
+echo "I'm still executing!"
+
+# passing condition
+if grep $trip /etc/passwd
+then
+echo "yahoo"
+fi
+
+echo "i am famished"

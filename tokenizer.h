@@ -6,6 +6,6 @@
 #include <unistd.h>
 #include <string.h>
 
-void tokenize(char** argv, size_t argc);
+void tokenize(char** argv, size_t argc, FILE* scriptFile);
 
 #endif

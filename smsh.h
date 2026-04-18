@@ -19,7 +19,7 @@
 /**
  * Evaluates command line to run system commands or shell-scripts
  */
-void shellEval(char** argv, size_t argc);
+void shellEval(char** argv, size_t argc, FILE* scriptFile);
 
 /**
  * Write the cwd and shell user to the screen

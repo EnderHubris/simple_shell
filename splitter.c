@@ -57,9 +57,6 @@ strings* splitLine(char* line, size_t len) {
 
     char* subString = NULL;
 
-    // replace new-line with \0
-    line[len+1] = '\0';
-
     int isQuoted = 0;
     char quoteChar = 0;
 
@@ -67,34 +64,46 @@ strings* splitLine(char* line, size_t len) {
         char c = line[i];
 
         if (!isQuoted && c == ' ') {
-            if (subString != NULL) {
-                appendString(obj, subString);
-                subString = NULL;
-            }
+            appendString(obj, subString);
+            subString = NULL;
             continue;
-        } else if (subString == NULL) {
-            // quoted-strings start with a quote char
-            isQuoted = (c == '"' || c == '\'');
-            quoteChar = c;
-        } else if (isQuoted && line[i-1] != '\\') {
-            // quote group closed
-            if (quoteChar == c) isQuoted = 0;
-        } else if (!isQuoted && c == ';') {
-            // split the string at the semi-colon and
-            // append both strings
-            if (subString != NULL) {
-                appendString(obj, subString);
-                subString = NULL; // clear the string after appending
+        }
 
-                appendChar(&subString, c);
-                appendString(obj, subString);
-                subString = NULL;
-            }
+        // push two substrings (semi colon is its own token)
+        if (!isQuoted && c == ';') {
+            appendString(obj, subString);
+            subString = NULL;
+
+            char* token = NULL;
+            appendChar(&token, ';');
+            appendString(obj, token);
+
+            continue;
+        }
+
+        // handle quote open
+        if (!isQuoted && (c == '"' || c == '\'')) {
+            isQuoted  = 1;
+            quoteChar = c;
+            appendChar(&subString, c);
+            continue;
+        }
+
+        // handle quote close
+        if (isQuoted && c == quoteChar && (i == 0 || line[i-1] != '\\')) {
+            isQuoted = 0;
+            appendChar(&subString, c);
             continue;
         }
 
         appendChar(&subString, c);
     }
+
+    // trailing character from last-line of a file
+    if (line[len] != '\n' && line[len] != '\0') {
+        appendChar(&subString, line[len]);
+    }
+
     appendString(obj, subString);
 
     return obj;

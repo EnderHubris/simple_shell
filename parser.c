@@ -5,6 +5,11 @@ int exec_smsh(char** argv) {
     // via execvp
     pid_t pid = fork();
 
+    // printf("[EXEC] ");
+    // for (size_t i = 0; argv && argv[i] != NULL; ++i)
+    //     printf("%s ", argv[i]);
+    // printf("\n");
+
     if (pid == -1) {
         perror("fork");
         return -1;
@@ -30,26 +35,23 @@ int exec_smsh(char** argv) {
 char** extractCommand(size_t* argc, char** argv, size_t* len, int i) {
     if (!argv || !len || !argc) return NULL;
 
-    // assume these are normal bash commands and take advantage
-    // of outter bash shell | find the end of cmdlet
-    size_t k = i+1;
+    size_t k = i + 1;
     for (; k < *argc; ++k) {
         if (
-            strcmp(argv[k], ";") == 0 ||
+            strcmp(argv[k], ";")  == 0 ||
             strcmp(argv[k], "\n") == 0
         ) break;
     }
 
-    // need to insert a null pointer so execvp
-    // knowns where to end
-    char** oargv = malloc( (k+1) * sizeof(char*) );
-    oargv[k] = NULL;
-    *len = k;
+    size_t cmdLen = k - i;
 
-    for (size_t j = 0; j < k; ++j) {
-        char* av = argv[i+j];
-        oargv[j] = strdup(av);
-    }
+    char **oargv = malloc((cmdLen + 1) * sizeof(char *));
+    oargv[cmdLen] = NULL;
+    *len = cmdLen;
+
+    for (size_t j = 0; j < cmdLen; ++j)
+        oargv[j] = strdup(argv[i + j]);
+
     return oargv;
 }
 

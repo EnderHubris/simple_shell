@@ -1,6 +1,8 @@
 #include "tokenizer.h"
+#include "splitter.h"
 #include "environ.h"
 #include "parser.h"
+#include "evaluator.h"
 #include "utils.h"
 
 /*
@@ -34,7 +36,12 @@ static char* get_value(char** argv, size_t argc, size_t i) {
     return val;
 }
 
-void tokenize(char** argv, size_t argc) {
+void tokenize(char** argv, size_t argc, FILE* scriptFile) {
+    // printf("[TOKENIZE] ");
+    // for (size_t i = 0; i < argc; ++i)
+    //     printf("%s ", argv[i]);
+    // if (argc > 0) printf("\n");
+
     for (size_t i = 0; i < argc; ++i) {
         const char* token = argv[i];
 
@@ -103,14 +110,15 @@ void tokenize(char** argv, size_t argc) {
         }
 
         if (strcmp("if", token) == 0) {
-            
-            continue;
-        } else if (strcmp("then", token) == 0) {
-            continue;
+            // resolve the condition
+            int execBlock = resolveCondition(&SMSH_ENV, argv, argc, i);
+            executeFlow(&SMSH_ENV, scriptFile, execBlock);
+            return; // exit this method and read the next line
         } else if (
             strcmp(";", token) == 0 ||
             strcmp("\n", token) == 0 ||
-            strcmp("fi", token) == 0
+            strcmp("fi", token) == 0 ||
+            strcmp("then", token) == 0
         ) {
             continue;
         }
@@ -132,13 +140,11 @@ void tokenize(char** argv, size_t argc) {
         exec_smsh(cmdlet);
 
         // free cmdlet array
-        for (size_t k = 0; k < cmdlet_len; ++k)
+        for (size_t k = 0; cmdlet && k < cmdlet_len; ++k)
             free(cmdlet[k]);
         free(cmdlet);
 
         // skip consumed tokens
         i+=cmdlet_len;
-
-        // printf("%s is unrecognized\n", token);
     }
 }

@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define BUFFER_SIZE 2048
+
 typedef enum {
     LIT_STRING,
     NUMERIC

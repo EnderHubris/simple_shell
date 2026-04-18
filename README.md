@@ -11,8 +11,10 @@ This simple shell is designed for the following:
     * mechanism to unspecialize certain characters
 - nested if statements
     * allows for flow control
+    * conditions can only be commands, arithmetic/logical operations not implemented
 
 ## Compile
 ```console
-make build && ./smsh
+make build && ./smsh           # open internal shell
+make build && ./smsh cmds.smsh # run from command file
 ```
